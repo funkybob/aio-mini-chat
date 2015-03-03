@@ -1,0 +1,4 @@
+aiohttp==0.14.4
+asyncio-redis==0.13.4
+bleach==1.4.1
+
