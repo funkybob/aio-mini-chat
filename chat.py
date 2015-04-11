@@ -104,18 +104,6 @@ def index(request):
     )
 
 
-@asyncio.coroutine
-def static(request):
-    path = os.path.abspath(
-        os.path.join(BASE_DIR, 'static', request.match_info['path'])
-    )
-    if not path.startswith(BASE_DIR):
-        return web.HTTPNotFound()
-
-    content_type, encoding = mimetypes.guess_type(path)
-    return web.Response(body=open(path, 'rb').read(), content_type=content_type)
-
-
 class SseResponse(web.StreamResponse):
     def __init__(self, request, *args, **kwargs):
         self.request = request
@@ -240,7 +228,7 @@ def cookie_middleware(app, handler):
 if __name__ == '__main__':
     app = web.Application(middlewares=[cookie_middleware])
     app.router.add_route('GET', '/', index)
-    app.router.add_route('GET', '/static/{path:.+}', static)
+    app.router.add_static('/static/', os.path.join(BASE_DIR, 'static'))
     app.router.add_route('GET', '/{channel}/', listen)
     app.router.add_route('POST', '/{channel}/', chatter)
 
