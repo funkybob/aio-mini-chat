@@ -1,27 +1,15 @@
-* {
-    -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
-    -moz-box-sizing: border-box;    /* Firefox, other Gecko */
-    box-sizing: border-box;         /* Opera/IE 8+ */
-}
+* { box-sizing: border-box; }
 html, body {
     margin: 0;
     padding: 0;
     height: 100%;
     font-family: sans-serif;
 }
-
 h1 {
     font-size: 1em;
     line-height: 30px;
     vertical-align: top;
     margin: 0;
-}
-
-h2 {
-    font-size: 1em;
-    line-height: 1.5em;
-    border-radius: 3px;
-    margin: 0.2em;
 }
 
 /* Basic 3 stacked box layout */
@@ -77,6 +65,7 @@ footer {
     flex-flow: row nowrap;
     align-items: flex-start;
     line-height: 1.5em;
+    font-family: monospace;
 }
 .message.note { color: #b6dce5; }
 .message.action { color: #1faac9; }
