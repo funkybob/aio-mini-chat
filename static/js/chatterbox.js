@@ -1,21 +1,3 @@
-// Standard django CSRF handling
-function getCookie(name) {
-    var i, cookie, cookies, cookieValue = null;
-    if (document.cookie && document.cookie != '') {
-        cookies = document.cookie.split(';');
-        for (i = 0; i < cookies.length; i++) {
-            cookie = cookies[i].trim();
-            // Does this cookie string begin with the name we want?
-            if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
-var csrftoken = getCookie('csrftoken');
-
 // Simple template renderer
 String.prototype.render = function (data) {
     return this.replace(/\{(\w+)\}/g, function (match, key) { return data[key]; });
@@ -48,7 +30,6 @@ var ChatterBox = (function () {
 
         xhr.open('POST', url);
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        xhr.setRequestHeader("X-CSRFToken", csrftoken);
         xhr.send(data.join('&'));
     };
 
