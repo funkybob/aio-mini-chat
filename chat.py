@@ -1,11 +1,13 @@
-
 import asyncio
 from functools import partial
 import json
 import os
 import random
 import string
+import socket
 import time
+
+import uwsgi
 
 from aiohttp import web
 from asyncio_redis import Connection, ZScoreBoundary
@@ -224,17 +226,22 @@ def cookie_middleware(app, handler):
         return response
     return middleware
 
-if __name__ == '__main__':
-    app = web.Application(middlewares=[cookie_middleware])
+@asyncio.coroutine
+def init(loop, fd):
+    app = web.Application(middlewares=[cookie_middleware], loop=loop)
     app.router.add_route('GET', '/', index)
     app.router.add_static('/static/', os.path.join(BASE_DIR, 'static'))
     app.router.add_route('GET', '/{channel}/', listen)
     app.router.add_route('POST', '/{channel}/', chatter)
 
-    loop = asyncio.get_event_loop()
-    f = loop.create_server(app.make_handler(), '0.0.0.0', 8080)
-    srv = loop.run_until_complete(f)
-    try:
-        loop.run_forever()
-    except KeyboardInterrupt:
-        pass
+    srv = yield from loop.create_server(app.make_handler(),
+                                        sock=socket.fromfd(fd, socket.AF_INET, socket.SOCK_STREAM))
+
+loop = asyncio.get_event_loop()
+# spawn a handler for every uWSGI socket
+for fd in uwsgi.sockets:
+    loop.run_until_complete(init(loop, fd))
+try:
+    loop.run_forever()
+except KeyboardInterrupt:
+    pass
