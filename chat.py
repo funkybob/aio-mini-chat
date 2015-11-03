@@ -226,6 +226,7 @@ def cookie_middleware(app, handler):
         return response
     return middleware
 
+
 @asyncio.coroutine
 def init(loop, fd):
     app = web.Application(middlewares=[cookie_middleware], loop=loop)
@@ -236,6 +237,7 @@ def init(loop, fd):
 
     srv = yield from loop.create_server(app.make_handler(),
                                         sock=socket.fromfd(fd, socket.AF_INET, socket.SOCK_STREAM))
+    return srv
 
 loop = asyncio.get_event_loop()
 # spawn a handler for every uWSGI socket
