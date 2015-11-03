@@ -25,7 +25,7 @@ Make sure you have Redis running, and listening on the default port.
 $ virtualenv -p python3 achat
 $ . achat/bin/activate
 $ pip install -r requirements.txt
-$ python chat.py
+$ uwsgi --http-socket 0:8080 --master --processes=4 --python-worker-override=chat.py
 ```
 
 Now go to http://localhost:8080/#test
