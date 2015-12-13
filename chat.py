@@ -216,7 +216,7 @@ def cookie_middleware(app, handler):
         size = yield from request.conn.zcard(key)
 
         if size > RATE_LIMIT:
-            response = web.Response(body=b'', status_code=429)
+            response = web.Response(body=b'', status=429)
         else:
             # Call handler
             response = yield from handler(request)
