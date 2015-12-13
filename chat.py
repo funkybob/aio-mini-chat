@@ -128,6 +128,8 @@ class SseResponse(web.StreamResponse):
                 self.write('data: {}\n'.format(line).encode('utf-8'))
             self.write('\n'.encode('utf-8'))
 
+        self.conn.close()
+
 
 @asyncio.coroutine
 def listen(request):
@@ -221,6 +223,8 @@ def cookie_middleware(app, handler):
         # Set cookie
         if tag is None:
             response.set_cookie('chatterbox', request.tag)
+        if not isinstance(response, SseResponse):
+            request.conn.close()
         return response
     return middleware
 
