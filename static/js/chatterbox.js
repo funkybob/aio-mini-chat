@@ -5,7 +5,7 @@ String.prototype.render = function (data) {
 
 // EventSource malarky
 var ChatterBox = (function () {
-    var modemap = {}, input, messages, nicks, source, url, favicon, pending = 0;
+    var modemap = {}, input, messages, nicks, source, url, pending = 0;
 
     var template = {
         message : '<div class="message {mode}"><time>{when}</time><span>{sender}</span><p>{message}</p></div>',
@@ -50,7 +50,7 @@ var ChatterBox = (function () {
         Array.prototype.slice.call(
             messages.querySelectorAll('.message'), 0, -1000
         ).map(function (el) { messages.removeChild(el); });
-        (document.visibilityState != 'visible') && favicon && favicon.badge(++pending);
+        (document.visibilityState != 'visible') && Tinycon.setBubble(++pending);
     };
 
     // Parse event data and render message
@@ -187,14 +187,7 @@ var ChatterBox = (function () {
         clear();
         connect();
         window.setInterval(ChatterBox.send, 30000, '', 'names');
-        // if the Favico lib is loaded, let's use it.
-        if(Favico) {
-            favicon = new Favico();
-            document.addEventListener('visibilitychange', function () {
-                pending = 0;
-                favicon.reset();
-            });
-        }
+        document.addEventListener('visibilitychange', function () { pending = 0; });
     };
 
     return {
