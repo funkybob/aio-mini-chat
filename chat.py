@@ -49,10 +49,7 @@ async def get_nicks(request):
     keys = await request['conn'].keys_aslist(key)
     if keys:
         vals = await request['conn'].mget_aslist(keys)
-        return {
-            k: v
-            for k, v in zip(vals, keys)
-        }
+        return {k: v for k, v in zip(vals, keys)}
     return {}
 
 
@@ -89,9 +86,7 @@ async def get_topic(request):
 
 # Request handlers
 async def index(request):
-    return web.Response(
-        body=open(os.path.join(BASE_DIR, 'index.html'), 'rb').read()
-    )
+    return web.Response(body=open(os.path.join(BASE_DIR, 'index.html'), 'rb').read())
 
 
 async def listen(request):
@@ -138,15 +133,9 @@ async def chatter(request):
         try:
             new_nick = await set_nick(request, msg)
         except ValueError:
-            await post_message(request, 'Nick in use!', 'alert',
-                               sender='Notice')
+            await post_message(request, 'Nick in use!', 'alert', sender='Notice')
         else:
-            await post_message(
-                request,
-                '{} is now known as {}'.format(nick, new_nick),
-                mode='nick',
-                sender='Notice'
-            )
+            await post_message(request, '{} is now known as {}'.format(nick, new_nick), mode='nick', sender='Notice')
 
     elif mode == 'names':
         nicks = await get_nicks(request)
@@ -156,10 +145,8 @@ async def chatter(request):
         target = request.POST['target']
         nicks = await get_nicks(request)
         _, _, target_tag = nicks[target].split(':')
-        await post_message(request, msg, 'msg', target=target,
-                                queue=make_key(target_tag, 'private'))
-        await post_message(request, msg, 'msg', target=target,
-                                queue=make_key(request.tag, 'private'))
+        await post_message(request, msg, 'msg', target=target, queue=make_key(target_tag, 'private'))
+        await post_message(request, msg, 'msg', target=target, queue=make_key(request.tag, 'private'))
 
     elif mode in ['message', 'action']:
         await post_message(request, msg, mode)
@@ -176,8 +163,7 @@ async def chatter(request):
 async def cookie_middleware(app, handler):
     async def middleware(request):
         tag = request.cookies.get('chatterbox', None)
-        request.tag = tag or ''.join(random.choice(string.ascii_letters)
-                                     for x in range(16))
+        request.tag = tag or ''.join(random.choice(string.ascii_letters) for x in range(16))
 
         request['conn'] = await Connection.create(host='localhost', port=6379)
 
@@ -186,11 +172,7 @@ async def cookie_middleware(app, handler):
         now = time.time()
         await request['conn'].zadd(key, {str(int(now)): now})
         await request['conn'].expireat(key, int(now) + RATE_LIMIT_DURATION)
-        await request['conn'].zremrangebyscore(
-            key,
-            ZScoreBoundary('-inf'),
-            ZScoreBoundary(now - RATE_LIMIT_DURATION)
-        )
+        await request['conn'].zremrangebyscore(key, ZScoreBoundary('-inf'), ZScoreBoundary(now - RATE_LIMIT_DURATION))
         size = await request['conn'].zcard(key)
 
         if size > RATE_LIMIT:
