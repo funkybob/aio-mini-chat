@@ -94,44 +94,35 @@ async def index(request):
     )
 
 
-class SseResponse(web.StreamResponse):
-    def __init__(self, request, *args, **kwargs):
-        self.request = request
-        super().__init__(*args, **kwargs)
-        self.headers[web.hdrs.CONTENT_TYPE] = 'text/event-stream; charset=utf-8'
-        self.headers['Cache-Control'] = 'no-cache'
-
-    async def write_eof(self):
-        request = self.request
-
-        subscriber = await request['conn'].start_subscribe()
-
-        await subscriber.subscribe([
-            make_key(request.match_info['channel'], 'channel'),
-            make_key(request.tag, 'private'),
-        ])
-
-        while True:
-            msg = await subscriber.next_published()
-            mode, data = json.loads(msg.value)
-            self.write('event: {}\n'.format(mode).encode('utf-8'))
-            for line in data.splitlines():
-                self.write('data: {}\n'.format(line).encode('utf-8'))
-            self.write('\n'.encode('utf-8'))
-
-        self['conn'].close()
-
-
 async def listen(request):
     if 'text/event-stream' not in request.headers['ACCEPT']:
         return web.http.HTTPNotAcceptable()
 
     nick = await get_nick(request)
 
-    await post_message(request, '{} connected.'.format(nick), 'join',
-                       sender='Notice')
+    await post_message(request, '{} connected.'.format(nick), 'join', sender='Notice')
 
-    return SseResponse(request)
+    resp = web.StreamResponse()
+    resp.headers[web.hdrs.CONTENT_TYPE] = 'text/event-stream; charset=utf-8'
+    resp.headers['Cache-Control'] = 'no-cache'
+    await resp.prepare(request)
+
+    subscriber = await request['conn'].start_subscribe()
+
+    await subscriber.subscribe([
+        make_key(request.match_info['channel'], 'channel'),
+        make_key(request.tag, 'private'),
+    ])
+
+    while True:
+        msg = await subscriber.next_published()
+        mode, data = json.loads(msg.value)
+        resp.write('event: {}\n'.format(mode).encode('utf-8'))
+        for line in data.splitlines():
+            resp.write('data: {}\n'.format(line).encode('utf-8'))
+        resp.write('\n'.encode('utf-8'))
+
+    return resp
 
 
 async def chatter(request):
@@ -210,8 +201,6 @@ async def cookie_middleware(app, handler):
         # Set cookie
         if tag is None:
             response.set_cookie('chatterbox', request.tag)
-        if not isinstance(response, SseResponse):
-            request['conn'].close()
         return response
     return middleware
 
