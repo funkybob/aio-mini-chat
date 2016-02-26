@@ -1,4 +1,3 @@
-
 import asyncio
 from functools import partial
 import json
@@ -41,15 +40,15 @@ async def post_message(request, message, mode, queue=None, **data):
     data.setdefault('sender', nick)
 
     content = json.dumps(data)
-    await request.conn.publish(queue, json.dumps([mode, content]))
+    await request['conn'].publish(queue, json.dumps([mode, content]))
 
 
 # Nick handling
 async def get_nicks(request):
     key = make_key(request.match_info['channel'], 'nick', '*')
-    keys = await request.conn.keys_aslist(key)
+    keys = await request['conn'].keys_aslist(key)
     if keys:
-        vals = await request.conn.mget_aslist(keys)
+        vals = await request['conn'].mget_aslist(keys)
         return {
             k: v
             for k, v in zip(vals, keys)
@@ -59,11 +58,11 @@ async def get_nicks(request):
 
 async def get_nick(request):
     key = make_key(request.match_info['channel'], 'nick', request.tag)
-    nick = await request.conn.get(key)
+    nick = await request['conn'].get(key)
     if nick is None:
         nick = await set_nick(request, request.tag[:8])
     else:
-        await request.conn.expire(key, 90)
+        await request['conn'].expire(key, 90)
     return nick
 
 
@@ -73,19 +72,19 @@ async def set_nick(request, name):
     if name in nicks:
         raise ValueError('Nick in use!')
     key = make_key(request.match_info['channel'], 'nick', request.tag)
-    await request.conn.set(key, name, expire=90)
+    await request['conn'].set(key, name, expire=90)
     return name
 
 
 # Topic handling
 async def set_topic(request, topic):
     key = make_key(request.match_info['channel'], 'topic')
-    await request.conn.set(key, topic)
+    await request['conn'].set(key, topic)
 
 
 async def get_topic(request):
     key = make_key(request.match_info['channel'], 'topic')
-    return await request.conn.get(key)
+    return await request['conn'].get(key)
 
 
 # Request handlers
@@ -105,7 +104,7 @@ class SseResponse(web.StreamResponse):
     async def write_eof(self):
         request = self.request
 
-        subscriber = await request.conn.start_subscribe()
+        subscriber = await request['conn'].start_subscribe()
 
         await subscriber.subscribe([
             make_key(request.match_info['channel'], 'channel'),
@@ -120,7 +119,7 @@ class SseResponse(web.StreamResponse):
                 self.write('data: {}\n'.format(line).encode('utf-8'))
             self.write('\n'.encode('utf-8'))
 
-        self.conn.close()
+        self['conn'].close()
 
 
 async def listen(request):
@@ -189,19 +188,19 @@ async def cookie_middleware(app, handler):
         request.tag = tag or ''.join(random.choice(string.ascii_letters)
                                      for x in range(16))
 
-        request.conn = await Connection.create(host='localhost', port=6379)
+        request['conn'] = await Connection.create(host='localhost', port=6379)
 
         # Rate limit
         key = make_key(request.tag, 'rated')
         now = time.time()
-        await request.conn.zadd(key, {str(int(now)): now})
-        await request.conn.expireat(key, int(now) + RATE_LIMIT_DURATION)
-        await request.conn.zremrangebyscore(
+        await request['conn'].zadd(key, {str(int(now)): now})
+        await request['conn'].expireat(key, int(now) + RATE_LIMIT_DURATION)
+        await request['conn'].zremrangebyscore(
             key,
             ZScoreBoundary('-inf'),
             ZScoreBoundary(now - RATE_LIMIT_DURATION)
         )
-        size = await request.conn.zcard(key)
+        size = await request['conn'].zcard(key)
 
         if size > RATE_LIMIT:
             response = web.Response(body=b'', status=429)
@@ -212,7 +211,7 @@ async def cookie_middleware(app, handler):
         if tag is None:
             response.set_cookie('chatterbox', request.tag)
         if not isinstance(response, SseResponse):
-            request.conn.close()
+            request['conn'].close()
         return response
     return middleware
 
