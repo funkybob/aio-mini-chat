@@ -1,5 +1,4 @@
 import asyncio
-from functools import partial
 import json
 import os
 import random
@@ -27,7 +26,9 @@ def linkify_external(attrs, new=False):
     attrs['target'] = '_blank'
     return attrs
 
-strip_tags = partial(bleach.clean, tags=[], strip=True)
+
+def strip_tags(value):
+    return bleach.clean(value, tags=[], strip=True)
 
 
 async def post_message(request, message, mode, queue=None, **data):
