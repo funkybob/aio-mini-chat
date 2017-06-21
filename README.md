@@ -31,8 +31,3 @@ $ python chat.py
 Now go to http://localhost:8080/#test
 
 By changing the #fragment on the URL you change 'channels'.
-
-Bonus Feature
--------------
-
-If you put a copy of http://lab.ejci.net/favico.js/ v0.3.8 into the static/js dir, mini-chat will show you the number of un-seen messages in your favicon!
