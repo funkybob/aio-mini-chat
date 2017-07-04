@@ -183,6 +183,10 @@ async def cookie_middleware(app, handler):
         else:
             # Call handler
             response = await handler(request)
+
+        if resp.headers[web.hdrs.CONTENT_TYPE] != 'text/event-stream; charset=utf-8':
+            request['conn'].close()
+
         # Set cookie
         if tag is None:
             response.set_cookie('chatterbox', request.tag)
