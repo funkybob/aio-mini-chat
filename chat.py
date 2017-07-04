@@ -168,7 +168,7 @@ async def cookie_middleware(app, handler):
         request.tag = tag or ''.join(random.choice(string.ascii_letters) for x in range(16))
 
         url = urlparse(os.environ.get('REDIS_URL', 'redis://localhost:6379'))
-        request['conn'] = await Connection.create(host=url.hostname, port=url.port)
+        request['conn'] = await Connection.create(host=url.hostname, port=url.port, password=url.password)
 
         # Rate limit
         key = make_key(request.tag, 'rated')
