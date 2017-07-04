@@ -4,6 +4,7 @@ import os
 import random
 import string
 import time
+from urllib.parse import urlparse
 
 from aiohttp import web
 from asyncio_redis import Connection, ZScoreBoundary
@@ -166,7 +167,8 @@ async def cookie_middleware(app, handler):
         tag = request.cookies.get('chatterbox', None)
         request.tag = tag or ''.join(random.choice(string.ascii_letters) for x in range(16))
 
-        request['conn'] = await Connection.create(host='localhost', port=6379)
+        url = urlparse(os.environ.get('REDIS_URL', 'redis://localhost:6379'))
+        request['conn'] = await Connection.create(host=url.hostname, port=url.port)
 
         # Rate limit
         key = make_key(request.tag, 'rated')
