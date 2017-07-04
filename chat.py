@@ -184,7 +184,7 @@ async def cookie_middleware(app, handler):
             # Call handler
             response = await handler(request)
 
-        if resp.headers[web.hdrs.CONTENT_TYPE] != 'text/event-stream; charset=utf-8':
+        if response.headers[web.hdrs.CONTENT_TYPE] != 'text/event-stream; charset=utf-8':
             request['conn'].close()
 
         # Set cookie
