@@ -87,7 +87,7 @@ async def get_topic(request):
 
 # Request handlers
 async def index(request):
-    return web.Response(body=open(os.path.join(BASE_DIR, 'index.html'), 'rb').read())
+    return web.Response(body=open(os.path.join(BASE_DIR, 'index.html'), 'rb').read(), content_type='text/html')
 
 
 async def listen(request):
@@ -122,10 +122,10 @@ async def listen(request):
 
 
 async def chatter(request):
-    await request.post()
+    POST = await request.post()
 
-    mode = request.POST.get('mode', 'message')
-    msg = request.POST.get('message', '')
+    mode = POST.get('mode', 'message')
+    msg = POST.get('message', '')
     msg = bleach.linkify(strip_tags(msg), callbacks=[linkify_external])
 
     nick = await get_nick(request)
@@ -143,7 +143,7 @@ async def chatter(request):
         await post_message(request, list(nicks.keys()), 'names')
 
     elif mode == 'msg':
-        target = request.POST['target']
+        target = POST['target']
         nicks = await get_nicks(request)
         _, _, target_tag = nicks[target].split(':')
         await post_message(request, msg, 'msg', target=target, queue=make_key(target_tag, 'private'))
@@ -189,10 +189,10 @@ async def cookie_middleware(app, handler):
 
 if __name__ == '__main__':
     app = web.Application(middlewares=[cookie_middleware])
-    app.router.add_route('GET', '/', index)
+    app.router.add_get('/', index)
     app.router.add_static('/static/', os.path.join(BASE_DIR, 'static'))
-    app.router.add_route('GET', '/{channel}/', listen)
-    app.router.add_route('POST', '/{channel}/', chatter)
+    app.router.add_get('/{channel}/', listen)
+    app.router.add_post('/{channel}/', chatter)
 
     loop = asyncio.get_event_loop()
     web.run_app(app, host='0.0.0.0', port=8080)
