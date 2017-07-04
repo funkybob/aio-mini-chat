@@ -50,7 +50,7 @@ footer {
     list-style: none;
     margin: 0;
     padding: 0;
-    line-height: 1.5em;
+    line-height: 1.5;
 }
 #nicks li {
     background-color: #e5e5e5;
@@ -64,7 +64,7 @@ footer {
     display: flex;
     flex-flow: row nowrap;
     align-items: flex-start;
-    line-height: 1.5em;
+    line-height: 2;
     font-family: monospace;
 }
 .message.note { color: #b6dce5; }
