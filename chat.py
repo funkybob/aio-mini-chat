@@ -24,7 +24,7 @@ def make_key(*args):
 
 # For bleach
 def linkify_external(attrs, new=False):
-    attrs['target'] = '_blank'
+    attrs[(None, 'target')] = '_blank'
     return attrs
 
 
