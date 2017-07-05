@@ -1,10 +1,10 @@
 // Simple template renderer
 String.prototype.render = function (data) {
-    return this.replace(/\{(\w+)\}/g, function (match, key) { return data[key]; });
+    return this.replace(/\{(\w+)\}/g, (match, key) => { return data[key]; });
 };
 
 // EventSource malarky
-var ChatterBox = (function () {
+var ChatterBox = (() => {
     var modemap = {}, input, messages, nicks, source, url, pending = 0;
 
     var template = {
@@ -187,7 +187,7 @@ var ChatterBox = (function () {
         clear();
         connect();
         window.setInterval(ChatterBox.send, 30000, '', 'names');
-        document.addEventListener('visibilitychange', function () { pending = 0; });
+        document.addEventListener('visibilitychange', () => { pending = 0; });
     };
 
     return {
