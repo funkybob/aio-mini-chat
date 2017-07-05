@@ -15,7 +15,7 @@ import bleach
 BASE_DIR = os.path.dirname(__file__)
 
 RATE_LIMIT_DURATION = 60
-RATE_LIMIT = 10
+RATE_LIMIT = 100
 
 
 def make_key(*args):
