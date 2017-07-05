@@ -187,7 +187,7 @@ var ChatterBox = (() => {
         clear();
         connect();
         window.setInterval(ChatterBox.send, 30000, '', 'names');
-        document.addEventListener('visibilitychange', () => { pending = 0; });
+        document.addEventListener('visibilitychange', () => { pending = 0; Tinycon.reset(); });
     };
 
     return {
