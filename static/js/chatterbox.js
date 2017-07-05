@@ -15,12 +15,22 @@ var ChatterBox = (function () {
         msg     : '<div class="message msg"><time>{when}</time><span><i>{sender}</i> &rArr; <i>{target}</i></span><p><em>{message}</em></p></div>'
     };
 
-    var postHeaders = new Headers({'Content-Type': 'application/x-www-form-urlencoded'})
     // Send a message to server
     function send(message, mode, extra) {
-        var form = new FormData();
-        for(var k in extra) { form.append(k, extra[k]); }
-        fetch(url, {method: 'POST', data: form, headers: postHeaders})
+        var xhr = new window.XMLHttpRequest();
+
+        extra = extra || {};
+        extra.message = message;
+        extra.mode = mode;
+
+        // Convert 'extra' to x-www-form-urlencoded
+        data = Object.keys(extra).map(key => {
+            return encodeURIComponent(key) + '=' + encodeURIComponent(extra[key]);
+        });
+ 
+        xhr.open('POST', url);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.send(data.join('&'));
     };
 
     function make_timestamp() {
