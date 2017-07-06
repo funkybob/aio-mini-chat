@@ -120,6 +120,7 @@ async def listen(request):
             resp.write('data: {}\n'.format(line).encode('utf-8'))
         resp.write('\n'.encode('utf-8'))
 
+    request['conn'].close()
     return resp
 
 
