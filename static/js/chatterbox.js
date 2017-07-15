@@ -1,6 +1,7 @@
+// jshint esversion: 6
 // Simple template renderer
 String.prototype.render = function (data) {
-    return this.replace(/\{(\w+)\}/g, (match, key) => { return data[key]; });
+    return this.replace(/\{(\w+)\}/g, (match, key) => data[key]);
 };
 
 // EventSource malarky
@@ -27,16 +28,16 @@ var ChatterBox = (() => {
         data = Object.keys(extra).map(key => {
             return encodeURIComponent(key) + '=' + encodeURIComponent(extra[key]);
         });
- 
+
         xhr.open('POST', url);
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
         xhr.send(data.join('&'));
-    };
+    }
 
     function make_timestamp() {
         var x = new Date();
-        return [x.getHours(), x.getMinutes(), x.getSeconds()].map(function (v) {
-            return (v < 10) ?  '0' + v.toString() : v.toString();
+        return [x.getHours(), x.getMinutes(), x.getSeconds()].map(v => {
+            (v < 10) ? '0' + v.toString() : v.toString();
         }).join(':');
     }
 
@@ -44,14 +45,14 @@ var ChatterBox = (() => {
     function append_message(data, tmpl) {
         data.mode = tmpl;
         data.when = data.when || make_timestamp();
-        tmpl = template[tmpl] || template['message'];
+        tmpl = template[tmpl] || template.message;
         messages.innerHTML += tmpl.render(data);
         messages.scrollTop = 9999999;
         Array.from(messages.querySelectorAll('.message'))
             .slice(0, -1000)
             .map(el => messages.removeChild(el));
         (document.visibilityState != 'visible') && Tinycon.setBubble(++pending);
-    };
+    }
 
     // Parse event data and render message
     function parse_message(event, tmpl) {
@@ -62,15 +63,15 @@ var ChatterBox = (() => {
     function setStatus(state) {
         input.classList.remove(input.classList[0]);
         input.classList.add(state);
-    };
+    }
 
-    modemap['open'] = function (event) {
+    modemap.open = event => {
         setStatus('ready');
         send('', 'names');
         send('', 'topic');
     };
 
-    modemap['error'] = function (event) {
+    modemap.error = event => {
         if(event.readyState == EventSource.CLOSED) {
             setStatus('disconnected');
             connect();
@@ -79,46 +80,41 @@ var ChatterBox = (() => {
         }
     };
 
-    modemap['action'] = function (event) { parse_message(event, 'action'); };
+    modemap.action = event => parse_message(event, 'action');
 
-    modemap['message'] = function (event) { parse_message(event, 'message'); };
+    modemap.message = event => parse_message(event, 'message');
 
-    modemap['note'] = function (event) { parse_message(event, 'note'); };
+    modemap.note = event => parse_message(event, 'note');
 
-    modemap['join'] = function (event) { send('', 'names'); parse_message(event, 'join'); };
+    modemap.join = event => { send('', 'names'); parse_message(event, 'join'); };
 
-    modemap['nick'] = function (event) { send('', 'names'); parse_message(event, 'nick'); };
+    modemap.nick = event => { send('', 'names'); parse_message(event, 'nick'); };
 
-    modemap['msg'] = function (event) { parse_message(event, 'msg'); };
+    modemap.msg = event => parse_message(event, 'msg');
 
-    modemap['topic'] = function (event) {
+    modemap.topic = event => {
         var data = JSON.parse(event.data);
         document.querySelector('h1 span').innerHTML = data.message;
     };
 
-    modemap['names'] = function (event) {
+    modemap.names = event => {
         var data = JSON.parse(event.data);
-        var content = [];
-        for(var i=0, j=data.message.length; i < j ; i++ ) {
-            content.push('<li>' + data.message[i] + '</li>');
-        }
-        nicks.innerHTML = content.join('\n');
+        nicks.innerHTML = data.message.map(msg => `<li>${msg}</li>`).join('\n');
     };
 
     function connect () {
         setStatus('connecting');
         source = new EventSource(url);
-        Object.keys(modemap).forEach(function (key) {
-            source.addEventListener(key, modemap[key], false);
-        });
-    };
+        Object.keys(modemap).forEach(key => source.addEventListener(key, modemap[key], false));
+    }
 
     function keypress(e) {
+        var match;
         var extra = {};
         if( e.keyCode == 9 ) {
             // Nick complete
             // parse back for the last space to now.
-            var match = /(\w+)$/i.exec(input.value);
+            match = /(\w+)$/i.exec(input.value);
             if(match) {
                 var pfx = match[1], pattern = RegExp('^' + match[1], 'i');
                 // Now find if it matches a known nick
@@ -137,12 +133,12 @@ var ChatterBox = (() => {
         if( e.keyCode != 13 ) return;
         var msg = input.value;
         if(msg.length == 0) return;
-        var mode = 'message'
-        var match = /^\/(\w+)\s?(.+)/g.exec(msg);
+        var mode = 'message';
+        match = /^\/(\w+)\s?(.+)/g.exec(msg);
         if(match) {
             switch(match[1]) {
             case 'nick':
-                var match = /^(\w+)/.exec(match[2]);
+                match = /^(\w+)/.exec(match[2]);
                 mode = 'nick';
                 msg = match[1];
                 break;
@@ -155,7 +151,7 @@ var ChatterBox = (() => {
                 msg = '';
                 break;
             case 'msg':
-                var match = /([-\w]+)\s+(.+)/.exec(match[2]);
+                match = /([-\w]+)\s+(.+)/.exec(match[2]);
                 mode = 'msg';
                 extra.target = match[1];
                 msg = match[2];
@@ -170,12 +166,12 @@ var ChatterBox = (() => {
         }
         send(msg, mode, extra);
         clear();
-    };
+    }
 
     function clear () {
         input.value = '';
         input.focus();
-    };
+    }
 
     function init (root_url) {
         url = root_url;
@@ -188,7 +184,7 @@ var ChatterBox = (() => {
         connect();
         window.setInterval(ChatterBox.send, 30000, '', 'names');
         document.addEventListener('visibilitychange', () => { pending = 0; Tinycon.reset(); });
-    };
+    }
 
     return {
         init: init,
