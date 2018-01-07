@@ -36,9 +36,8 @@ var ChatterBox = (() => {
 
     function make_timestamp() {
         var x = new Date();
-        return [x.getHours(), x.getMinutes(), x.getSeconds()].map(v => {
-            (v < 10) ? '0' + v.toString() : v.toString();
-        }).join(':');
+        return [x.getHours(), x.getMinutes(), x.getSeconds()]
+		.map(v => (v < 10) ? '0' + v.toString() : v.toString()).join(':');
     }
 
     // Print message to screen
@@ -105,7 +104,7 @@ var ChatterBox = (() => {
     function connect () {
         setStatus('connecting');
         source = new EventSource(url);
-        Object.keys(modemap).forEach(key => source.addEventListener(key, modemap[key], false));
+        Object.keys(modemap).forEach(key, handler => source.addEventListener(key, handler, false));
     }
 
     function keypress(e) {
