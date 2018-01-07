@@ -1,44 +1,47 @@
-* { box-sizing: border-box; }
-html, body {
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
     margin: 0;
     padding: 0;
     height: 100vh;
     font-family: sans-serif;
+
+    display: grid;
+    grid-template-columns : auto 200px;
+    grid-template-rows: 30px auto 30px;
+    grid-template-areas:
+        "header header"
+        "messages nicks"
+        "input input";
 }
+
 h1 {
+    margin: 0 1em;
     font-size: 1em;
     line-height: 30px;
     vertical-align: top;
-    margin: 0;
 }
+h2 { margin: 1em 0; }
+dd { margin-left: 40px; }
 
-/* Basic 3 stacked box layout */
 header {
+    grid-area: header;
     background: linear-gradient(#1faac9, #b6dce5);
-    height: 30px;
-    padding: 0 1em;
 }
-main {
-    height: calc(100% - 60px);
-    padding-top: 1em;
-}
+main { grid-area: messages; }
+#nicks { grid-area: nicks; }
 footer {
-    height: 30px;
+    grid-area: input;
     line-height: 30px;
 }
 
-/* side-by-side lists */
 #messages {
-    width: calc(100% - 200px - 0.5em);
-    display: inline-block;
-    height: 100%;
     vertical-align: bottom;
     overflow: auto;
-}
-#nicks {
-    width: 200px;
-    display: inline-block;
-    height: 100%;
 }
 #nicks h2 {
     height: 24px;
@@ -48,8 +51,6 @@ footer {
 }
 #nicks ul {
     list-style: none;
-    margin: 0;
-    padding: 0;
     line-height: 1.5;
 }
 #nicks li {
@@ -60,7 +61,6 @@ footer {
 }
 
 .message {
-    margin: 0;
     display: flex;
     flex-flow: row nowrap;
     align-items: flex-start;
