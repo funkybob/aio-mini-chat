@@ -25,7 +25,7 @@ var ChatterBox = (() => {
         extra.mode = mode;
 
         // Convert 'extra' to x-www-form-urlencoded
-        data = Object.keys(extra).map((key, value) => encodeURIComponent(key) + '=' + encodeURIComponent(value));
+        data = Object.keys(extra).map(key => encodeURIComponent(key) + '=' + encodeURIComponent(extra[key]));
 
         xhr.open('POST', url);
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
@@ -102,7 +102,7 @@ var ChatterBox = (() => {
     function connect () {
         setStatus('connecting');
         source = new EventSource(url);
-        Object.keys(modemap).forEach((key, handler) => source.addEventListener(key, handler, false));
+        Object.keys(modemap).forEach(key => source.addEventListener(key, modemap[key], false));
     }
 
     function keypress(e) {
