@@ -1,7 +1,7 @@
 // jshint esversion: 6
 // Simple template renderer
-String.prototype.render = function (data) {
-    return this.replace(/\{(\w+)\}/g, (match, key) => data[key]);
+function render(tmpl, data) {
+    return tmpl.replace(/\{(\w+)\}/g, (match, key) => data[key]);
 };
 
 // EventSource malarky
@@ -46,7 +46,7 @@ var ChatterBox = (() => {
         data.mode = tmpl;
         data.when = data.when || make_timestamp();
         tmpl = template[tmpl] || template.message;
-        messages.innerHTML += tmpl.render(data);
+        messages.innerHTML += render(tmpl, data);
         messages.scrollTo(0, element.scrollHeight);
         Array.from(messages.querySelectorAll('.message'))
             .slice(0, -1000)
