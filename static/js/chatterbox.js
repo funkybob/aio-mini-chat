@@ -25,17 +25,20 @@ var ChatterBox = (() => {
         extra.mode = mode;
 
         // Convert 'extra' to x-www-form-urlencoded
-        data = Object.keys(extra).map(key => encodeURIComponent(key) + '=' + encodeURIComponent(extra[key]));
+        data = Object.entries(extra).map(([key, value]) => encodeURIComponent(key) + '=' + encodeURIComponent(value));
 
-        xhr.open('POST', url);
-        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        xhr.send(data.join('&'));
+        fetch(url, {
+            method: 'POST',
+            body: data.join('&'),
+            credentials: 'same-origin',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+        })
     }
 
     function make_timestamp() {
         var x = new Date();
         return [x.getHours(), x.getMinutes(), x.getSeconds()]
-		.map(v => (v < 10) ? '0' + v.toString() : v.toString()).join(':');
+		.map(v => v.toString().padStart(2, '0')).join(':');
     }
 
     // Print message to screen
@@ -44,7 +47,7 @@ var ChatterBox = (() => {
         data.when = data.when || make_timestamp();
         tmpl = template[tmpl] || template.message;
         messages.innerHTML += tmpl.render(data);
-        messages.scrollTop = 9999999;
+        messages.scrollTo(0, element.scrollHeight);
         Array.from(messages.querySelectorAll('.message'))
             .slice(0, -1000)
             .map(el => messages.removeChild(el));
